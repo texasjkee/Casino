@@ -1,18 +1,35 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
 import { IPost } from '../model/Post'
+import { RequestCreatePostApi } from './types'
+import mainApi from '../../../app/store/mainApi'
 
-const postApi = createApi({
-  reducerPath: 'postApi',
-  baseQuery: fetchBaseQuery({
-    baseUrl: 'https://jsonplaceholder.typicode.com/'
-  }),
+enum TAGS {
+  POST = 'POST'
+}
+
+const enchanceApi = mainApi.enhanceEndpoints({
+  addTagTypes: [TAGS.POST]
+})
+
+const postApi = enchanceApi.injectEndpoints({
   endpoints: builder => ({
-    getPosts: builder.query<IPost, null>({
-      query: () => `posts`
+    getPosts: builder.query<IPost[], null>({
+      query: () => 'posts',
+      providesTags: [TAGS.POST]
+    }),
+    createPost: builder.mutation<IPost, RequestCreatePostApi>({
+      query: ({ body }) => ({
+        url: 'posts',
+        method: 'POST',
+        body
+      }),
+      invalidatesTags: [TAGS.POST]
     })
   })
 })
 
-export const { useGetPostsQuery } = postApi
+//provider
+//invalidator
+
+export const { useGetPostsQuery, useCreatePostMutation } = postApi
 
 export default postApi
